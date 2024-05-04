@@ -3,13 +3,13 @@ import {
   Link,
   RouterProvider,
   useLoaderData,
+  useRouteError,
 } from "react-router-dom";
 
 const Main = () => {
   const data = useLoaderData();
-
   return (
-    <div className="">
+    <div>
       <ul className="d-flex flex-column mt-3">
         {data.map((item) => {
           const name = item.name?.common || item.name?.official
@@ -31,8 +31,6 @@ const Main = () => {
 }
 
 const CountryCard = () => {
-  const data = useLoaderData();
-  console.log(data)
   const [country] = useLoaderData();
   return (
     <div>
@@ -72,22 +70,43 @@ const CountryCard = () => {
   )
 }
 
+const ErrorPage = () => {
+  let error = useRouteError();
+  return <div className="mt-2 fs-1">{error.message}</div>;
+}
+
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Main />,
     loader: async () => {
-      return (await fetch("https://restcountries.com/v3.1/all")).json()
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all");
+        if (!response.ok) {
+          throw new Error("Failed to fetch data from the API");
+        }
+        return response.json();
+      } catch (error) {
+        throw new Error("Failed to fetch data from the API");
+      }
     },
+    errorElement: <ErrorPage />,
   },
   {
     path: "country/:name",
     element: <CountryCard />,
     loader: async ({ params }) => {
-      return (
-        await fetch(`https://restcountries.com/v3.1/name/${params.name}`)
-      ).json()
+      try {
+        const response = await fetch(`https://restcountries.com/v3.1/name/${params.name}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch data from the API");
+        }
+        return response.json();
+      } catch (error) {
+        throw new Error("Failed to fetch data from the API");
+      }
     },
+    errorElement: <ErrorPage />,
   },
 ])
 
